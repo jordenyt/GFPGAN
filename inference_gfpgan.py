@@ -42,6 +42,8 @@ def main():
         default='auto',
         help='Image extension. Options: auto | jpg | png, auto means using the same extension as inputs. Default: auto')
     parser.add_argument('-w', '--weight', type=float, default=0.5, help='Adjustable weights.')
+    parser.add_argument('-r', '--sizelimit', type=int, default=2048, help='Size Limit for each photo. Default: 2048')
+    parser.add_argument('--cmp', action='store_true', help='Store input and output faces for comparison.')
     args = parser.parse_args()
 
     args = parser.parse_args()
@@ -130,6 +132,16 @@ def main():
         basename, ext = os.path.splitext(img_name)
         input_img = cv2.imread(img_path, cv2.IMREAD_COLOR)
 
+        scale_percent = 1.0
+        if (input_img.shape[1] >= input_img.shape[0] and input_img.shape[1] > args.sizelimit):
+            scale_percent = args.sizelimit / input_img.shape[1]
+        elif (input_img.shape[0] >= input_img.shape[1] and input_img.shape[1] > args.sizelimit):
+            scale_percent = args.sizelimit / input_img.shape[0]
+        width = int(input_img.shape[1] * scale_percent)
+        height = int(input_img.shape[0] * scale_percent)
+        dim = (width, height)
+        input_img = cv2.resize(input_img, dim, interpolation = cv2.INTER_AREA)
+
         # restore faces and background if necessary
         cropped_faces, restored_faces, restored_img = restorer.enhance(
             input_img,
@@ -139,20 +151,21 @@ def main():
             weight=args.weight)
 
         # save faces
-        for idx, (cropped_face, restored_face) in enumerate(zip(cropped_faces, restored_faces)):
-            # save cropped face
-            save_crop_path = os.path.join(args.output, 'cropped_faces', f'{basename}_{idx:02d}.png')
-            imwrite(cropped_face, save_crop_path)
-            # save restored face
-            if args.suffix is not None:
-                save_face_name = f'{basename}_{idx:02d}_{args.suffix}.png'
-            else:
-                save_face_name = f'{basename}_{idx:02d}.png'
-            save_restore_path = os.path.join(args.output, 'restored_faces', save_face_name)
-            imwrite(restored_face, save_restore_path)
-            # save comparison image
-            cmp_img = np.concatenate((cropped_face, restored_face), axis=1)
-            imwrite(cmp_img, os.path.join(args.output, 'cmp', f'{basename}_{idx:02d}.png'))
+        if args.cmp:
+            for idx, (cropped_face, restored_face) in enumerate(zip(cropped_faces, restored_faces)):
+                # save cropped face
+                save_crop_path = os.path.join(args.output, 'cropped_faces', f'{basename}_{idx:02d}.png')
+                imwrite(cropped_face, save_crop_path)
+                # save restored face
+                if args.suffix is not None:
+                    save_face_name = f'{basename}_{idx:02d}_{args.suffix}.png'
+                else:
+                    save_face_name = f'{basename}_{idx:02d}.png'
+                save_restore_path = os.path.join(args.output, 'restored_faces', save_face_name)
+                imwrite(restored_face, save_restore_path)
+                # save comparison image
+                cmp_img = np.concatenate((cropped_face, restored_face), axis=1)
+                imwrite(cmp_img, os.path.join(args.output, 'cmp', f'{basename}_{idx:02d}.png'))
 
         # save restored img
         if restored_img is not None:
