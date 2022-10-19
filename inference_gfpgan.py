@@ -7,6 +7,8 @@ import torch
 from basicsr.utils import imwrite
 from pathlib import Path
 from gfpgan import GFPGANer
+import time
+import datetime
 
 
 def main():
@@ -126,14 +128,22 @@ def main():
 
     # ------------------------ restore ------------------------
     img_count = 0
+    processed_count = 0
+    t0 = time.time()
     for img_path in img_list:
+        t1 = time.time()
+        str_rem_time = ""
+        if processed_count > 0:
+            rem_time = (t1-t0) / processed_count * (len(img_list) - img_count)
+            str_rem_time = str(datetime.timedelta(seconds=int(rem_time)))
         img_count += 1
         # read image
         img_name = os.path.basename(img_path)
         out_file = Path(os.path.join(args.output, 'restored_imgs', img_name))
         if out_file.is_file():
             continue
-        print(f'Processing {img_count} / {len(img_list)}: {img_name} ...')
+        processed_count += 1
+        print(f'Processing: {img_name} [{img_count}/{len(img_list)}] ... Remaining: {str_rem_time}')
         basename, ext = os.path.splitext(img_name)
         input_img = cv2.imread(img_path, cv2.IMREAD_COLOR)
 
