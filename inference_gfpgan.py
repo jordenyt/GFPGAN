@@ -135,7 +135,7 @@ def main():
         scale_percent = 1.0
         if (input_img.shape[1] >= input_img.shape[0] and input_img.shape[1] > args.sizelimit):
             scale_percent = args.sizelimit / input_img.shape[1]
-        elif (input_img.shape[0] >= input_img.shape[1] and input_img.shape[1] > args.sizelimit):
+        elif (input_img.shape[0] >= input_img.shape[1] and input_img.shape[0] > args.sizelimit):
             scale_percent = args.sizelimit / input_img.shape[0]
         width = int(input_img.shape[1] * scale_percent)
         height = int(input_img.shape[0] * scale_percent)
