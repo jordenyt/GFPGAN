@@ -46,6 +46,13 @@ def main():
     parser.add_argument('-w', '--weight', type=float, default=0.5, help='Adjustable weights.')
     parser.add_argument('-r', '--sizelimit', type=int, default=2048, help='Size Limit for each photo. Default: 2048')
     parser.add_argument('--cmp', action='store_true', help='Store input and output faces for comparison.')
+    parser.add_argument(
+        '-dn',
+        '--denoise_strength',
+        type=float,
+        default=0.5,
+        help=('Denoise strength for Real-ESRGAN General x4v3 model. 0 for weak denoise (keep noise), 1 for strong denoise ability. '
+              'Only used for the realesr-general-x4v3 model'))
     args = parser.parse_args()
 
     args = parser.parse_args()
@@ -68,12 +75,36 @@ def main():
                           'If you really want to use it, please modify the corresponding codes.')
             bg_upsampler = None
         else:
-            from basicsr.archs.rrdbnet_arch import RRDBNet
+            #from basicsr.archs.rrdbnet_arch import RRDBNet
+            from realesrgan.archs.srvgg_arch import SRVGGNetCompact
             from realesrgan import RealESRGANer
-            model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=2)
+            from basicsr.utils.download_util import load_file_from_url
+            #model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
+            model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=32, upscale=4, act_type='prelu')
+
+            model_name = 'realesr-general-x4v3'
+            model_path = os.path.join('weights', model_name + '.pth')
+            file_url = [
+                'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-wdn-x4v3.pth',
+                'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth'
+            ]
+            if not os.path.isfile(model_path):
+                ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+                for url in file_url:
+                    # model_path will be updated
+                    model_path = load_file_from_url(
+                        url=url, model_dir=os.path.join(ROOT_DIR, 'weights'), progress=True, file_name=None)
+
+            dni_weight = None
+            if args.denoise_strength != 1:
+                wdn_model_path = model_path.replace('realesr-general-x4v3', 'realesr-general-wdn-x4v3')
+                model_path = [model_path, wdn_model_path]
+                dni_weight = [args.denoise_strength, 1 - args.denoise_strength]
+
             bg_upsampler = RealESRGANer(
-                scale=2,
-                model_path='https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.1/RealESRGAN_x2plus.pth',
+                scale=4,
+                model_path=model_path,
+                dni_weight=dni_weight,
                 model=model,
                 tile=args.bg_tile,
                 tile_pad=10,
