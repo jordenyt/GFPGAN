@@ -75,15 +75,13 @@ def main():
                           'If you really want to use it, please modify the corresponding codes.')
             bg_upsampler = None
         else:
-            #from basicsr.archs.rrdbnet_arch import RRDBNet
             from realesrgan.archs.srvgg_arch import SRVGGNetCompact
             from realesrgan import RealESRGANer
             from basicsr.utils.download_util import load_file_from_url
-            #model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
             model = SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=32, upscale=4, act_type='prelu')
 
             model_name = 'realesr-general-x4v3'
-            model_path = os.path.join('weights', model_name + '.pth')
+            model_path = os.path.join('realesrgan', model_name + '.pth')
             file_url = [
                 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-wdn-x4v3.pth',
                 'https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-general-x4v3.pth'
@@ -93,7 +91,7 @@ def main():
                 for url in file_url:
                     # model_path will be updated
                     model_path = load_file_from_url(
-                        url=url, model_dir=os.path.join(ROOT_DIR, 'weights'), progress=True, file_name=None)
+                        url=url, model_dir=os.path.join(ROOT_DIR, 'realesrgan'), progress=True, file_name=None)
 
             dni_weight = None
             if args.denoise_strength != 1:
