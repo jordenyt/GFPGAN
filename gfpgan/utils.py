@@ -143,6 +143,6 @@ class GFPGANer():
             self.face_helper.get_inverse_affine(None)
             # paste each restored face to the input image
             restored_img = self.face_helper.paste_faces_to_input_image(upsample_img=bg_img)
-            return self.face_helper.cropped_faces, self.face_helper.restored_faces, restored_img
+            return self.face_helper.cropped_faces, self.face_helper.restored_faces, restored_img, bg_img
         else:
-            return self.face_helper.cropped_faces, self.face_helper.restored_faces, None
+            return self.face_helper.cropped_faces, self.face_helper.restored_faces, None, None

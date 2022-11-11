@@ -46,6 +46,7 @@ def main():
     parser.add_argument('-w', '--weight', type=float, default=0.5, help='Adjustable weights.')
     parser.add_argument('-r', '--sizelimit', type=int, default=2048, help='Size Limit for each photo. Default: 2048')
     parser.add_argument('--cmp', action='store_true', help='Store input and output faces for comparison.')
+    parser.add_argument('--bgimg', action='store_true', help='Store upscaled background image.')
     parser.add_argument(
         '-dn',
         '--denoise_strength',
@@ -187,7 +188,7 @@ def main():
         input_img = cv2.resize(input_img, dim, interpolation = cv2.INTER_AREA)
 
         # restore faces and background if necessary
-        cropped_faces, restored_faces, restored_img = restorer.enhance(
+        cropped_faces, restored_faces, restored_img, bg_img = restorer.enhance(
             input_img,
             has_aligned=args.aligned,
             only_center_face=args.only_center_face,
@@ -223,6 +224,11 @@ def main():
             else:
                 save_restore_path = os.path.join(args.output, 'restored_imgs', f'{basename}.{extension}')
             imwrite(restored_img, save_restore_path)
+
+        if args.bgimg and bg_img is not None:
+            extension = ext[1:]
+            save_restore_path = os.path.join(args.output, 'upscaled_imgs', f'{basename}.{extension}')
+            imwrite(bg_img, save_restore_path)
 
     print(f'Results are in the [{args.output}] folder.')
 
