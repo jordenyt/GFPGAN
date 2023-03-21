@@ -161,6 +161,8 @@ def main():
     processed_count = 0
     t0 = time.time()
     for img_path in img_list:
+        if not os.path.isfile(img_path):
+            continue
         t1 = time.time()
         str_rem_time = ""
         if processed_count > 0:
@@ -176,7 +178,6 @@ def main():
         print(f'Processing: {img_name} [{img_count}/{len(img_list)}] ... Remaining: {str_rem_time}')
         basename, ext = os.path.splitext(img_name)
         input_img = cv2.imread(img_path, cv2.IMREAD_COLOR)
-
         scale_percent = 1.0
         if (input_img.shape[1] >= input_img.shape[0] and input_img.shape[1] > args.sizelimit):
             scale_percent = args.sizelimit / input_img.shape[1]
